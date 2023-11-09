@@ -15,7 +15,9 @@ let currentChatData = {
 };
 
 io.on("connection", (socket) => {
+    console.log("connected")
   socket.on("initChat", () => {
+    console.log("init chat")
     const renderMinutes = () => {
       let currentMins = today.getMinutes().toString();
       return currentMins.toString().length < 2
@@ -29,6 +31,7 @@ io.on("connection", (socket) => {
       initialTime: `${days[today.getDay()]} ${Math.abs(today.getHours() > 12 ? today.getHours() - 12 : today.getHours())}:${renderMinutes()} ${today.getHours() >= 12 ? "PM" : "AM"}`,
       messages: []
     };
+    console.log(newRoom)
     currentChatData.rooms.push(newRoom);
     socket.emit("chatData", newRoom);
   });
