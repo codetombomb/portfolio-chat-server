@@ -56,4 +56,4 @@ io.on("connection", (socket) => {
     socket.emit("adminChats", currentChatData.rooms)
   })
 });
-server.listen(PORT, () => console.log("Listening on port 3001"));
+server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
