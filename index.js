@@ -4,6 +4,7 @@ const Server = require("socket.io").Server;
 const cors = require('cors');
 const app = express(cors());
 const server = http.createServer(app);
+const PORT = process.env.PORT || 3001
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -55,4 +56,4 @@ io.on("connection", (socket) => {
     socket.emit("adminChats", currentChatData.rooms)
   })
 });
-server.listen(process.env.PORT || 3001, () => console.log("Listening on port 3001"));
+server.listen(PORT, () => console.log("Listening on port 3001"));
