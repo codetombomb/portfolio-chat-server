@@ -11,6 +11,9 @@ const io = new Server(server, {
   },
 });
 
+const strftime = require("strftime")
+
+
 let currentChatData = {
   rooms: [],
 };
@@ -32,17 +35,63 @@ io.on("connection", (socket) => {
       body: JSON.stringify(newRoom)
     }
     fetch("http://127.0.0.1:5000/chats", config)
-      .then(resp => resp.json())
+      .then(resp => {
+        if(resp.ok){
+          return resp.json()
+        }
+      })
       .then(data => {
-        console.log({...newRoom, ...data})
         socket.emit("chatData", {...newRoom, ...data})
       })
+      .catch(err => console.log(err))
+
+      socket.emit("chatData", {
+        room_id: socket.id,
+        chat_time_stamp: strftime(`%a %-I:%M%p`)
+    })
   });
 
-  socket.on("sendMessage", (message, roomId, currentChat) => {
-    console.log("This is the room id: ", roomId);
-    currentChat.messages.push(message);
-    socket.emit("chatData", currentChat);
+  socket.on("sendMessage", (message, roomId, currentChat, isAdmin, chatId) => {
+    // console.log("This is the room id: ", roomId);
+    // POST new message
+
+    // content=content,
+    // sender_type=sender_type,
+    // chat_id=chat_id,
+    // visitor_id=visitor_id,
+    // admin_id=admin_id,
+
+    const newMessage = {
+      content: message,
+      sender_type: isAdmin ? "Admin" : "Visitor",
+      chat_id: currentChat.id,
+      visitor_id: currentChat.visitor_id,
+      admin_id: currentChat.admin_id
+    }
+
+    const config = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newMessage)
+    }
+
+    fetch("http://127.0.0.1:5000/messages", config)
+      .then(resp => {
+        if(resp.ok){
+          return resp.json()
+        }
+      })
+      .then(data => {
+        //  socket.emit("chatData", {...newRoom, ...data})
+        console.log(data)
+      })
+      .catch(err => console.log(err))
+
+    
+    // emit chat data with new messages
+    // socket.emit("chatData", currentChat);
   });
 
   socket.on("disconnect", () => {
