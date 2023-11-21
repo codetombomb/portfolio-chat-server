@@ -11,6 +11,10 @@ const io = new Server(server, {
   },
 });
 
+const strftime = require("strftime")
+const URL_BASE = "http://127.0.0.1:5000"
+
+
 let currentChatData = {
   rooms: [],
 };
@@ -31,18 +35,60 @@ io.on("connection", (socket) => {
       },
       body: JSON.stringify(newRoom)
     }
-    fetch("http://127.0.0.1:5000/chats", config)
-      .then(resp => resp.json())
+    fetch(`${URL_BASE}/chats`, config)
+      .then(resp => {
+        if(resp.ok){
+          return resp.json()
+        }
+      })
       .then(data => {
-        console.log({...newRoom, ...data})
         socket.emit("chatData", {...newRoom, ...data})
       })
+      .catch(err => console.log(err))
+
+      socket.emit("chatData", {
+        room_id: socket.id,
+        chat_time_stamp: strftime(`%a %-I:%M%p`)
+    })
   });
 
-  socket.on("sendMessage", (message, roomId, currentChat) => {
-    console.log("This is the room id: ", roomId);
-    currentChat.messages.push(message);
-    socket.emit("chatData", currentChat);
+  socket.on("sendMessage", (message, roomId, currentChat, isAdmin, chatId) => {
+    // console.log("This is the room id: ", roomId);
+    // POST new message
+
+    // content=content,
+    // sender_type=sender_type,
+    // chat_id=chat_id,
+    // visitor_id=visitor_id,
+    // admin_id=admin_id,
+
+    const newMessage = {
+      content: message,
+      sender_type: isAdmin ? "Admin" : "Visitor",
+      chat_id: currentChat.id,
+      visitor_id: currentChat.visitor_id,
+      admin_id: currentChat.admin_id
+    }
+
+    const config = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newMessage)
+    }
+
+    fetch(`${URL_BASE}/messages`, config)
+      .then(resp => {
+        if(resp.ok){
+          return resp.json()
+        }
+      })
+      .then(data => {
+        currentChat.messages.push(data)
+         socket.emit("chatData", currentChat)
+      })
+      .catch(err => console.log(err))
   });
 
   socket.on("disconnect", () => {
@@ -64,5 +110,26 @@ io.on("connection", (socket) => {
   socket.on("getChats", () => {
     socket.emit("rooms", Array.from(io.sockets.adapter.rooms));
   });
+
+  socket.on("closeChat", (chat) => {
+    console.log(chat)
+    const config = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({is_active: false})
+    }
+    fetch(`${URL_BASE}/chats/${chat.id}`, config)
+    .then(resp => {
+      if(resp.ok){
+        return resp.json()
+      }
+    })
+    .then(data => {
+     console.log(data)
+    })
+    .catch(err => console.log(err))
+  })
 });
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
