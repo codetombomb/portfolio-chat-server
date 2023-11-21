@@ -12,7 +12,7 @@ const io = new Server(server, {
 });
 
 const strftime = require("strftime")
-const URL_BASE = "http://127.0.0.1:5000"
+const URL_BASE = "https://portfolio-api-ws.onrender.com"
 
 
 let currentChatData = {
