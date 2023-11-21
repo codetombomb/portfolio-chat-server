@@ -12,6 +12,7 @@ const io = new Server(server, {
 });
 
 const strftime = require("strftime")
+const URL_BASE = "http://127.0.0.1:5000"
 
 
 let currentChatData = {
@@ -34,7 +35,7 @@ io.on("connection", (socket) => {
       },
       body: JSON.stringify(newRoom)
     }
-    fetch("http://127.0.0.1:5000/chats", config)
+    fetch(`${URL_BASE}/chats`, config)
       .then(resp => {
         if(resp.ok){
           return resp.json()
@@ -77,21 +78,17 @@ io.on("connection", (socket) => {
       body: JSON.stringify(newMessage)
     }
 
-    fetch("http://127.0.0.1:5000/messages", config)
+    fetch(`${URL_BASE}/messages`, config)
       .then(resp => {
         if(resp.ok){
           return resp.json()
         }
       })
       .then(data => {
-        //  socket.emit("chatData", {...newRoom, ...data})
-        console.log(data)
+        currentChat.messages.push(data)
+         socket.emit("chatData", currentChat)
       })
       .catch(err => console.log(err))
-
-    
-    // emit chat data with new messages
-    // socket.emit("chatData", currentChat);
   });
 
   socket.on("disconnect", () => {
@@ -113,5 +110,26 @@ io.on("connection", (socket) => {
   socket.on("getChats", () => {
     socket.emit("rooms", Array.from(io.sockets.adapter.rooms));
   });
+
+  socket.on("closeChat", (chat) => {
+    console.log(chat)
+    const config = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({is_active: false})
+    }
+    fetch(`${URL_BASE}/chats/${chat.id}`, config)
+    .then(resp => {
+      if(resp.ok){
+        return resp.json()
+      }
+    })
+    .then(data => {
+     console.log(data)
+    })
+    .catch(err => console.log(err))
+  })
 });
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
