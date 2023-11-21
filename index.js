@@ -52,16 +52,8 @@ io.on("connection", (socket) => {
     })
   });
 
-  socket.on("sendMessage", (message, roomId, currentChat, isAdmin, chatId) => {
-    // console.log("This is the room id: ", roomId);
-    // POST new message
-
-    // content=content,
-    // sender_type=sender_type,
-    // chat_id=chat_id,
-    // visitor_id=visitor_id,
-    // admin_id=admin_id,
-
+  socket.on("sendMessage", (message, roomId, currentChat, isAdmin) => {
+    console.log("Sending message to: ",roomId)
     const newMessage = {
       content: message,
       sender_type: isAdmin ? "Admin" : "Visitor",
@@ -86,7 +78,9 @@ io.on("connection", (socket) => {
       })
       .then(data => {
         currentChat.messages.push(data)
-         socket.emit("chatData", currentChat)
+        //  socket.emit("chatData", currentChat)
+        
+        io.sockets.in(roomId).emit("chatData", currentChat)
       })
       .catch(err => console.log(err))
   });
@@ -99,7 +93,9 @@ io.on("connection", (socket) => {
 
     console.log("disconnected");
   });
+
   socket.on("joinRoom", (room) => {
+    console.log("Joining room: ", room)
     socket.join(room);
   });
 
@@ -108,7 +104,15 @@ io.on("connection", (socket) => {
   // });
 
   socket.on("getChats", () => {
-    socket.emit("rooms", Array.from(io.sockets.adapter.rooms));
+    console.log("Getting admin chats")
+    fetch(`${URL_BASE}/chats`)
+      .then(resp => resp.json())
+      .then(rooms => socket.emit("rooms", rooms))
+
+    socket.emit("chatData", {
+      room_id: socket.id,
+      chat_time_stamp: strftime(`%a %-I:%M%p`)
+  })
   });
 
   socket.on("closeChat", (chat) => {
