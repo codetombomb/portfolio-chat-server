@@ -5,6 +5,7 @@ const cors = require("cors");
 const app = express(cors());
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
+const fetch = require("node-fetch");
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -13,6 +14,7 @@ const io = new Server(server, {
 
 const strftime = require("strftime")
 const URL_BASE = "https://portfolio-api-ws.onrender.com"
+// const URL_BASE = "http://127.0.0.1:5000"
 
 
 let currentChatData = {
