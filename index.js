@@ -96,9 +96,12 @@ io.on("connection", (socket) => {
     console.log("disconnected");
   });
 
-  socket.on("joinRoom", (room) => {
+  socket.on("joinRoom", (room, chatId) => {
     console.log("Joining room: ", room)
     socket.join(room);
+    fetch(`${URL_BASE}/chats/${chatId}`)
+      .then(resp => resp.json())
+      .then(data => io.sockets.in(room).emit("chatData", data))
   });
 
   // socket.on("adminLogin", () => {
@@ -118,7 +121,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("closeChat", (chat) => {
-    console.log(chat)
+    console.log("Closing chat", chat)
     const config = {
       method: "PATCH",
       headers: {
