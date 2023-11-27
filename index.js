@@ -78,33 +78,18 @@ serverIO.on("connection", (socket) => {
       })
       .then(data => {
         currentChat.messages.push(data)
-        //  socket.emit("chatData", currentChat)
-        
         serverIO.sockets.in(roomId).emit("chatData", currentChat)
       })
       .catch(err => console.log(err))
   });
-
-  // socket.on("disconnect", () => {
-  //   // const filterRooms = currentChatData.rooms.filter(({ roomId }) => {
-  //   //   return roomId !== socket.id;
-  //   // });
-  //   // currentChatData.rooms = [...filterRooms];
-
-  //   console.log("disconnected");
-  // });
 
   socket.on("joinRoom", (room, chatId) => {
     console.log("Joining room: ", room)
     socket.join(room);
     fetch(`${URL_BASE}/chats/${chatId}`)
       .then(resp => resp.json())
-      .then(data => io.sockets.in(room).emit("chatData", data))
+      .then(data => serverIO.sockets.in(room).emit("chatData", data))
   });
-
-  // socket.on("adminLogin", () => {
-  //   socket.emit("rooms", Array.from(io.sockets.adapter.rooms))
-  // });
 
   socket.on("getChats", () => {
     console.log("Getting admin chats")
