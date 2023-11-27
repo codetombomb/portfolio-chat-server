@@ -144,5 +144,8 @@ server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
 const task = cron.schedule('*/10 * * * *', () =>  {
   io("https://portfolio-chat-server-rjvo.onrender.com")
+  fetch(`${URL_BASE}/chats`)
+  .then(resp => resp.json())
+  .then(rooms => console.log("rooms", rooms))
 });
 task.start()
