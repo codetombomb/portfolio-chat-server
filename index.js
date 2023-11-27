@@ -6,7 +6,9 @@ const app = express(cors());
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
 const fetch = require("node-fetch");
-const io = new Server(server, {
+const cron = require('node-cron');
+const { io } = require("socket.io-client");
+const serverIO = new Server(server, {
   cors: {
     origin: "*",
   },
@@ -16,14 +18,8 @@ const strftime = require("strftime")
 const URL_BASE = "https://portfolio-api-ws.onrender.com"
 // const URL_BASE = "http://127.0.0.1:5000"
 
-
-let currentChatData = {
-  rooms: [],
-};
-
-io.on("connection", (socket) => {
+serverIO.on("connection", (socket) => {
   socket.on("initChat", () => {
-    console.log("init chat");
     const newRoom = {
       visitor_id: "",
       admin_id: "",
@@ -44,6 +40,7 @@ io.on("connection", (socket) => {
         }
       })
       .then(data => {
+        console.log(data)
         socket.emit("chatData", {...newRoom, ...data})
       })
       .catch(err => console.log(err))
@@ -82,19 +79,19 @@ io.on("connection", (socket) => {
         currentChat.messages.push(data)
         //  socket.emit("chatData", currentChat)
         
-        io.sockets.in(roomId).emit("chatData", currentChat)
+        serverIO.sockets.in(roomId).emit("chatData", currentChat)
       })
       .catch(err => console.log(err))
   });
 
-  socket.on("disconnect", () => {
-    const filterRooms = currentChatData.rooms.filter(({ roomId }) => {
-      return roomId !== socket.id;
-    });
-    currentChatData.rooms = [...filterRooms];
+  // socket.on("disconnect", () => {
+  //   // const filterRooms = currentChatData.rooms.filter(({ roomId }) => {
+  //   //   return roomId !== socket.id;
+  //   // });
+  //   // currentChatData.rooms = [...filterRooms];
 
-    console.log("disconnected");
-  });
+  //   console.log("disconnected");
+  // });
 
   socket.on("joinRoom", (room, chatId) => {
     console.log("Joining room: ", room)
@@ -120,8 +117,8 @@ io.on("connection", (socket) => {
   })
   });
 
-  socket.on("closeChat", (chat) => {
-    console.log("Closing chat", chat)
+  socket.on("closeChat", (chat) => { 
+    const fetchUrl = `${URL_BASE}/chats/${chat.id}`
     const config = {
       method: "PATCH",
       headers: {
@@ -129,16 +126,22 @@ io.on("connection", (socket) => {
       },
       body: JSON.stringify({is_active: false})
     }
-    fetch(`${URL_BASE}/chats/${chat.id}`, config)
+    fetch(fetchUrl, config)
     .then(resp => {
       if(resp.ok){
         return resp.json()
       }
     })
     .then(data => {
-     console.log(data)
+     console.log("This is the data", data)
     })
-    .catch(err => console.log(err))
+    .catch(err => console.log("This is the err", err))
   })
 });
+
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
+const task = cron.schedule('*/10 * * * *', () =>  {
+  io("https://portfolio-chat-server-rjvo.onrender.com")
+});
+task.start()
