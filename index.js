@@ -128,6 +128,10 @@ serverIO.on("connection", (socket) => {
     console.log('Active Admin', admin)
     socket.broadcast.emit("activeAdmins", admin)
   })
+
+  socket.on("removeActiveAdmin", (admin) => {
+    socket.broadcast.emit("removeActiveAdmin", admin)
+  })
 });
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
