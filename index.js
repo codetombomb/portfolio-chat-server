@@ -15,8 +15,8 @@ const serverIO = new Server(server, {
 });
 
 const strftime = require("strftime")
-const URL_BASE = "https://portfolio-api-ws.onrender.com"
-// const URL_BASE = "http://127.0.0.1:5000"
+// const URL_BASE = "https://portfolio-api-ws.onrender.com"
+const URL_BASE = "http://127.0.0.1:5000"
 
 serverIO.on("connection", (socket) => {
   console.log("Connected!", Date.now())
@@ -36,24 +36,24 @@ serverIO.on("connection", (socket) => {
     }
     fetch(`${URL_BASE}/chats`, config)
       .then(resp => {
-        if(resp.ok){
+        if (resp.ok) {
           return resp.json()
         }
       })
       .then(data => {
         console.log(data)
-        socket.emit("chatData", {...newRoom, ...data})
+        socket.emit("chatData", { ...newRoom, ...data })
       })
       .catch(err => console.log(err))
 
-      socket.emit("chatData", {
-        room_id: socket.id,
-        chat_time_stamp: strftime(`%a %-I:%M%p`)
+    socket.emit("chatData", {
+      room_id: socket.id,
+      chat_time_stamp: strftime(`%a %-I:%M%p`)
     })
   });
 
   socket.on("sendMessage", (message, roomId, currentChat, isAdmin) => {
-    console.log("Sending message to: ",roomId)
+    console.log("Sending message to: ", roomId)
     const newMessage = {
       content: message,
       sender_type: isAdmin ? "Admin" : "Visitor",
@@ -72,7 +72,7 @@ serverIO.on("connection", (socket) => {
 
     fetch(`${URL_BASE}/messages`, config)
       .then(resp => {
-        if(resp.ok){
+        if (resp.ok) {
           return resp.json()
         }
       })
@@ -100,37 +100,42 @@ serverIO.on("connection", (socket) => {
     socket.emit("chatData", {
       room_id: socket.id,
       chat_time_stamp: strftime(`%a %-I:%M%p`)
-  })
+    })
   });
 
-  socket.on("closeChat", (chat) => { 
+  socket.on("closeChat", (chat) => {
     const fetchUrl = `${URL_BASE}/chats/${chat.id}`
     const config = {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({is_active: false})
+      body: JSON.stringify({ is_active: false })
     }
     fetch(fetchUrl, config)
-    .then(resp => {
-      if(resp.ok){
-        return resp.json()
-      }
-    })
-    .then(data => {
-     console.log("This is the data", data)
-    })
-    .catch(err => console.log("This is the err", err))
+      .then(resp => {
+        if (resp.ok) {
+          return resp.json()
+        }
+      })
+      .then(data => {
+        console.log("This is the data", data)
+      })
+      .catch(err => console.log("This is the err", err))
+  })
+
+  socket.on("setActiveAdmin", (admin) => {
+    console.log('Active Admin', admin)
+    socket.broadcast.emit("activeAdmins", admin)
   })
 });
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
-const task = cron.schedule('*/10 * * * *', () =>  {
+const task = cron.schedule('*/10 * * * *', () => {
   io("https://portfolio-chat-server-rjvo.onrender.com")
   fetch(`${URL_BASE}/chats`)
-  .then(resp => resp.json())
-  .then(rooms => console.log("rooms", rooms))
+    .then(resp => resp.json())
+    .then(rooms => console.log("rooms", rooms))
 });
 task.start()
