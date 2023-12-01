@@ -16,8 +16,8 @@ const serverIO = new Server(server, {
 });
 
 const strftime = require("strftime")
-const URL_BASE = "https://portfolio-api-ws.onrender.com"
-// const URL_BASE = "http://127.0.0.1:5000"
+// const URL_BASE = "https://portfolio-api-ws.onrender.com"
+const URL_BASE = "http://127.0.0.1:5000"
 
 serverIO.on("connection", (socket) => {
   console.log("Connected!", Date.now())
@@ -43,6 +43,7 @@ serverIO.on("connection", (socket) => {
       })
       .then(data => {
         console.log(data)
+        socket.join(data.room_id);
         socket.emit("chatData", { ...newRoom, ...data })
         socket.broadcast.emit("addAdminChat", data)
       })
@@ -106,6 +107,7 @@ serverIO.on("connection", (socket) => {
   });
 
   socket.on("closeChat", (chat) => {
+    socket.leave(chat.room_id)
     const fetchUrl = `${URL_BASE}/chats/${chat.id}`
     const config = {
       method: "PATCH",
@@ -124,7 +126,8 @@ serverIO.on("connection", (socket) => {
                 content: `Chat has ended`,
                 id: uuidv4(),
                 sender_type: "ChatStatus",
-                visitor_id: chat.visitor_id
+                visitor_id: chat.visitor_id,
+                is_active: chat.is_active
               }]
             })
           })
