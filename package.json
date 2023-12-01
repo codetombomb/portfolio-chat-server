@@ -19,6 +19,7 @@
     "nodemon": "^3.0.1",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
-    "strftime": "^0.10.2"
+    "strftime": "^0.10.2",
+    "uuid": "^9.0.1"
   }
 }

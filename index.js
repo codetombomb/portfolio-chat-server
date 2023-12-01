@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3001;
 const fetch = require("node-fetch");
 const cron = require('node-cron');
 const { io } = require("socket.io-client");
+const { v4: uuidv4 } = require('uuid');
 const serverIO = new Server(server, {
   cors: {
     origin: "*",
@@ -43,6 +44,7 @@ serverIO.on("connection", (socket) => {
       .then(data => {
         console.log(data)
         socket.emit("chatData", { ...newRoom, ...data })
+        socket.broadcast.emit("addAdminChat", data)
       })
       .catch(err => console.log(err))
 
@@ -115,11 +117,18 @@ serverIO.on("connection", (socket) => {
     fetch(fetchUrl, config)
       .then(resp => {
         if (resp.ok) {
-          return resp.json()
+          return resp.json().then(data => {
+            serverIO.sockets.in(chat.room_id).emit("endChat", {
+              ...data, messages: [...data.messages, {
+                admin_id: chat.admin_id,
+                content: `Chat has ended`,
+                id: uuidv4(),
+                sender_type: "ChatStatus",
+                visitor_id: chat.visitor_id
+              }]
+            })
+          })
         }
-      })
-      .then(data => {
-        console.log("This is the data", data)
       })
       .catch(err => console.log("This is the err", err))
   })
