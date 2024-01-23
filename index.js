@@ -102,7 +102,7 @@ serverIO.on("connection", (socket) => {
 
     socket.emit("chatData", {
       room_id: socket.id,
-      chat_time_stamp: strftime(`%a %-I:%M%p`)
+      chat_time_stamp: Intl.DateTimeFormat('en', { hour: "numeric", minute: "numeric", hour12: true }).format(new Date())
     })
   });
 
