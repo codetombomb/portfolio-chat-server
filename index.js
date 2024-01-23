@@ -99,7 +99,7 @@ serverIO.on("connection", (socket) => {
     fetch(`${URL_BASE}/chats`)
       .then(resp => resp.json())
       .then(rooms => socket.emit("rooms", rooms))
-
+    console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
     socket.emit("chatData", {
       room_id: socket.id,
       chat_time_stamp: Intl.DateTimeFormat('en', { hour: "numeric", minute: "numeric", hour12: true }).format(new Date())
