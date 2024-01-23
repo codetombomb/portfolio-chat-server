@@ -49,10 +49,8 @@ serverIO.on("connection", (socket) => {
       })
       .catch(err => console.log(err))
 
-    console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
     socket.emit("chatData", {
-      room_id: socket.id,
-      chat_time_stamp: Intl.DateTimeFormat('en', { weekday: "short",hour: "numeric", minute: "numeric", hour12: true }).format(new Date())
+      room_id: socket.id
     })
   });
 
