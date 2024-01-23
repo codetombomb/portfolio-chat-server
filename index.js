@@ -50,8 +50,7 @@ serverIO.on("connection", (socket) => {
       .catch(err => console.log(err))
 
     socket.emit("chatData", {
-      room_id: socket.id,
-      chat_time_stamp: Intl.DateTimeFormat('en', { weekday: "short",hour: "numeric", minute: "numeric", hour12: true }).format(new Date() - 5)
+      room_id: socket.id
     })
   });
 
