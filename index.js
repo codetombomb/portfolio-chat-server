@@ -1,21 +1,24 @@
+require('dotenv').config()
+
 const express = require("express");
 const http = require("http");
 const Server = require("socket.io").Server;
 const cors = require("cors");
-const app = express(cors());
+const app = express();
+app.use(cors())
 const server = http.createServer(app);
-const PORT = process.env.PORT || 3001;
 const fetch = require("node-fetch");
 const cron = require('node-cron');
 const { io } = require("socket.io-client");
 const { v4: uuidv4 } = require('uuid');
 
-const URL_BASE = "https://portfolio-api-ws.onrender.com"
-// const URL_BASE = "http://127.0.0.1:5000"
+const PORT = process.env.PORT;
+
+const URL_BASE = process.env.URL_BASE
 
 const serverIO = new Server(server, {
   cors: {
-    origin: "https://portfolio-front-end-c982.onrender.com",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST"]
   },
 });
