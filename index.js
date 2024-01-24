@@ -11,13 +11,13 @@ const { io } = require("socket.io-client");
 const { v4: uuidv4 } = require('uuid');
 const serverIO = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"]
   },
 });
 
-const strftime = require("strftime")
-const URL_BASE = "https://portfolio-api-ws.onrender.com"
-// const URL_BASE = "http://127.0.0.1:5000"
+// const URL_BASE = "https://portfolio-api-ws.onrender.com"
+const URL_BASE = "http://127.0.0.1:5000"
 
 serverIO.on("connection", (socket) => {
   console.log("Connected!", Date.now())
@@ -142,6 +142,15 @@ serverIO.on("connection", (socket) => {
 
   socket.on("removeActiveAdmin", (admin) => {
     socket.broadcast.emit("removeActiveAdmin", admin)
+  })
+  
+  socket.on("typing", (data, roomId) => {
+    console.log("typing", data.name, roomId)
+    serverIO.sockets.in(roomId).emit("typing", data.name)
+  })
+
+  socket.on("stopped typing",(name) => {
+    socket.broadcast.emit("stopped typing", name)
   })
 });
 
