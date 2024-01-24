@@ -66,7 +66,8 @@ serverIO.on("connection", (socket) => {
       sender_type: isAdmin ? "Admin" : "Visitor",
       chat_id: currentChat.id,
       visitor_id: currentChat.visitor_id,
-      admin_id: currentChat.admin_id
+      admin_id: currentChat.admin_id,
+      created_at: timeSent
     }
 
     const config = {
@@ -84,7 +85,6 @@ serverIO.on("connection", (socket) => {
         }
       })
       .then(data => {
-        data.timeSent = timeSent
         currentChat.messages.push(data)
         serverIO.sockets.in(roomId).emit("chatData", currentChat)
       })
