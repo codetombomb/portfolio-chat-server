@@ -149,8 +149,8 @@ serverIO.on("connection", (socket) => {
     serverIO.sockets.in(roomId).emit("typing", data.name)
   })
 
-  socket.on("stopped typing",(name) => {
-    socket.broadcast.emit("stopped typing", name)
+  socket.on("stopped typing",(name, roomId) => {
+    serverIO.sockets.in(roomId).emit("stopped typing", name)
   })
 });
 
