@@ -10,7 +10,7 @@ const cron = require('node-cron');
 const { io } = require("socket.io-client");
 const { v4: uuidv4 } = require('uuid');
 
-const URL_BASE = "https://portfolio-api-ws.onrender.com"
+const URL_BASE = "https://portfolio-front-end-c982.onrender.com"
 // const URL_BASE = "http://127.0.0.1:5000"
 
 const serverIO = new Server(server, {
