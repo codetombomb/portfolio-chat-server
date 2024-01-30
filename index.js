@@ -110,7 +110,7 @@ serverIO.on("connection", (socket) => {
     })
   });
 
-  socket.on("closeChat", (chat) => {
+  socket.on("closeChat", (chat, timeClosed) => {
     socket.leave(chat.room_id)
     const fetchUrl = `${URL_BASE}/chats/${chat.id}`
     const config = {
@@ -131,7 +131,8 @@ serverIO.on("connection", (socket) => {
                 id: uuidv4(),
                 sender_type: "ChatStatus",
                 visitor_id: chat.visitor_id,
-                is_active: chat.is_active
+                is_active: chat.is_active,
+                created_at: timeClosed
               }]
             })
           })
@@ -141,7 +142,6 @@ serverIO.on("connection", (socket) => {
   })
 
   socket.on("setActiveAdmin", (admin) => {
-    console.log('Active Admin', admin)
     socket.broadcast.emit("activeAdmins", admin)
   })
 
@@ -150,7 +150,6 @@ serverIO.on("connection", (socket) => {
   })
   
   socket.on("typing", (data, roomId) => {
-    console.log("typing", data.name, roomId)
     serverIO.sockets.in(roomId).emit("typing", data.name)
   })
 
