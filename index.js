@@ -26,10 +26,11 @@ const serverIO = new Server(server, {
 
 serverIO.on("connection", (socket) => {
   console.log("Connected!", Date.now())
-  socket.on("initChat", () => {
+  socket.on("initChat", (adminData) => {
+    console.log("This is the admin Data ",adminData)
     const newRoom = {
       visitor_id: "",
-      admin_id: "",
+      admin_id: adminData.id,
       room_id: socket.id
     }
 
@@ -155,6 +156,11 @@ serverIO.on("connection", (socket) => {
 
   socket.on("stopped typing",(name, roomId) => {
     serverIO.sockets.in(roomId).emit("stopped typing", name)
+  })
+
+  socket.on("currentAdmin", (admin) => {
+    console.log("Current admin is: ",admin)
+    socket.broadcast.emit("currentAdmin", admin)
   })
 });
 
