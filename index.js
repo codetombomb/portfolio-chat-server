@@ -25,9 +25,7 @@ const serverIO = new Server(server, {
 
 
 serverIO.on("connection", (socket) => {
-  console.log("Connected!", Date.now())
   socket.on("initChat", (adminData) => {
-    console.log("This is the admin Data ",adminData)
     const newRoom = {
       visitor_id: "",
       admin_id: adminData.id,
@@ -48,7 +46,6 @@ serverIO.on("connection", (socket) => {
         }
       })
       .then(data => {
-        console.log(data)
         socket.join(data.room_id);
         socket.emit("chatData", { ...newRoom, ...data })
         socket.broadcast.emit("addAdminChat", data)
@@ -61,7 +58,6 @@ serverIO.on("connection", (socket) => {
   });
 
   socket.on("sendMessage", (message, roomId, currentChat, isAdmin, timeSent) => {
-    console.log("Sending message to: ", roomId)
     const newMessage = {
       content: message,
       sender_type: isAdmin ? "Admin" : "Visitor",
@@ -93,7 +89,6 @@ serverIO.on("connection", (socket) => {
   });
 
   socket.on("joinRoom", (room, chatId) => {
-    console.log("Joining room: ", room)
     socket.join(room);
     fetch(`${URL_BASE}/chats/${chatId}`)
       .then(resp => resp.json())
@@ -101,11 +96,9 @@ serverIO.on("connection", (socket) => {
   });
 
   socket.on("getChats", () => {
-    console.log("Getting admin chats")
     fetch(`${URL_BASE}/chats`)
       .then(resp => resp.json())
       .then(rooms => socket.emit("rooms", rooms))
-    console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
     socket.emit("chatData", {
       room_id: socket.id
     })
@@ -159,7 +152,25 @@ serverIO.on("connection", (socket) => {
   })
 
   socket.on("currentAdmin", (admin) => {
-    console.log("Current admin is: ",admin)
+    const allSockets = serverIO.sockets.sockets
+    const socketIds = Array.from(allSockets.keys());
+
+    const fetchUrl = `${URL_BASE}/chatroom-update`
+    const config = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({rooms: socketIds, admin_name: admin.name})
+      
+    }
+    fetch(fetchUrl, config)
+      .then(resp => resp.json())
+      .then(data => {
+        data.forEach(chat => {
+          serverIO.sockets.in(chat.room_id).emit("chatData", chat.messages)
+        })
+      })
     socket.broadcast.emit("currentAdmin", admin)
   })
 });
@@ -170,6 +181,6 @@ const task = cron.schedule('*/10 * * * *', () => {
   io("https://chat-server-7uc0.onrender.com")
   fetch(`${URL_BASE}/chats`)
     .then(resp => resp.json())
-    .then(rooms => console.log("rooms", rooms))
+    .then(rooms => console.log("Keeping it alive!"))
 });
 task.start()
