@@ -25,11 +25,12 @@ const serverIO = new Server(server, {
 
 
 serverIO.on("connection", (socket) => {
-  socket.on("initChat", (adminData) => {
+  socket.on("initChat", (adminData, created_at) => {
     const newRoom = {
       visitor_id: "",
       admin_id: adminData.id,
-      room_id: socket.id
+      room_id: socket.id,
+      created_at
     }
 
     const config = {
@@ -53,7 +54,12 @@ serverIO.on("connection", (socket) => {
       .catch(err => console.log(err))
 
     socket.emit("chatData", {
-      room_id: socket.id
+        visitor_id: null,
+        admin_id: null,
+        room_id: socket.id,
+        id: null,
+        messages: [],
+        is_active: true
     })
   });
 
